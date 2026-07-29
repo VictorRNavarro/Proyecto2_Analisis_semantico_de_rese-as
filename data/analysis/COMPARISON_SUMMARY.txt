@@ -1,0 +1,32 @@
+
+COMPARACIÓN FINAL: BoW vs Word2Vec vs BETO
+======================================================================
+
+CARACTERÍSTICAS:
+      Método  Dimensiones       Densidad  Semántica              Polisemia      Velocidad  Memoria (MB)
+TF-IDF (BoW)         1000 96.9% disperso         No                     No ⚡⚡⚡ Muy rápido     16.143799
+    Word2Vec          100     100% denso   Estática          No (1 vector)      ⚡⚡ Rápido      1.614380
+        BETO          768     100% denso Contextual Sí (context-dependent)        🐌 Lento      6.199219
+
+CLASIFICACIÓN (Logistic Regression):
+  Método        Clasificador  Accuracy  Precision   Recall       F1
+  TF-IDF Logistic Regression  0.893868   0.892086 1.000000 0.942966
+Word2Vec Logistic Regression  0.905660   0.919192 0.978495 0.947917
+    BETO Logistic Regression  0.896226   0.931579 0.951613 0.941489
+
+CLUSTERING (K-Means, k=5):
+  Método  n_clusters  Silhouette Score Interpretación
+  TF-IDF           5          0.008657          Débil
+Word2Vec           5          0.060921          Débil
+    BETO           5          0.058579          Débil
+
+CONCLUSIONES:
+- BETO es mejor para tareas semánticas complejas
+- Word2Vec ofrece buen balance velocidad-calidad
+- BoW es eficiente pero limitado en semántica
+
+ARCHIVOS GENERADOS:
+- comparison_features.csv
+- classification_metrics.csv
+- clustering_metrics.csv
+- comparison_metrics.png
