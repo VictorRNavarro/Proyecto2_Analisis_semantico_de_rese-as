@@ -3,6 +3,8 @@ beto_utils.py
 Utilidades para cargar y usar BETO (Spanish BERT).
 """
 
+import re
+
 import torch
 import numpy as np
 import pandas as pd
@@ -98,6 +100,41 @@ class BETOEmbedder:
         embeddings = outputs.last_hidden_state[0].cpu().numpy()
         
         return {token: embeddings[i] for i, token in enumerate(tokens)}
+
+    def get_word_embedding(self, text, word):
+        """Devuelve el embedding contextual de una palabra dentro de un texto.
+
+        Si el tokenizador divide la palabra en subpalabras, se promedian sus
+        vectores. Esto evita confundir un embedding de oración ([CLS]) con la
+        representación contextual de la palabra que se desea analizar.
+        """
+        if not isinstance(text, str) or not isinstance(word, str):
+            return None
+
+        match = re.search(rf"\b{re.escape(word)}\b", text, flags=re.IGNORECASE)
+        if match is None:
+            return None
+
+        encoded = self.tokenizer(
+            text,
+            return_tensors="pt",
+            return_offsets_mapping=True,
+            truncation=True,
+            max_length=512,
+        )
+        offsets = encoded.pop("offset_mapping")[0].tolist()
+        model_inputs = {key: value.to(self.device) for key, value in encoded.items()}
+        with torch.no_grad():
+            hidden = self.model(**model_inputs).last_hidden_state[0].cpu().numpy()
+
+        start, end = match.span()
+        positions = [
+            index for index, (token_start, token_end) in enumerate(offsets)
+            if token_end > start and token_start < end
+        ]
+        if not positions:
+            return None
+        return hidden[positions].mean(axis=0)
     
     def embed_batch(self, texts, use_cls=True, batch_size=32):
         """
